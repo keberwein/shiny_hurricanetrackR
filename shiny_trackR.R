@@ -4,7 +4,7 @@ library(rvest); library(foreign); library(geojsonio); library(lubridate); librar
 #library(htmlwidgets); library(RColorBrewer); library(XML); library(plyr); library(htmltools);
 
 ui <- dashboardPage(skin="red",
-    dashboardHeader(title = "Hurrican Irma TrackR"),
+    dashboardHeader(title = "Hurricane TrackR"),
     dashboardSidebar(img(src="infla.jpg", height=300,width=201), width = 200, collapsed = TRUE),
     dashboardBody(
         fluidRow(
@@ -30,7 +30,6 @@ server <- function(input, output, session) {
         setwd(td)
         
         message("Getting file links")
-        #gis_at <- read_xml("http://www.nhc.noaa.gov/gis-at.xml")
         gis_doc <- read_xml("http://www.nhc.noaa.gov/gis-at.xml") %>% xmlParse()
         links <<- xmlToDataFrame(gis_doc, nodes=getNodeSet(gis_doc, "//item"))
         if (nrow(links) == 0) {
@@ -158,8 +157,7 @@ server <- function(input, output, session) {
         incProgress(6/10)
         
         output$stormmap <- renderLeaflet({
-            m <- # create leaflet map
-                leaflet(data=storm) %>%
+            m <-leaflet(data=storm) %>%
                 addTiles(options = tileOptions(detectRetina = TRUE)) %>%
                 addWMSTiles(
                     "http://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WmsServer",
@@ -170,7 +168,7 @@ server <- function(input, output, session) {
                 addGeoJSON(shp, stroke = TRUE, color = 'grey', fill = FALSE) %>%
                 addGeoJSON(lin, weight = 2, fill = FALSE) %>%
                 addLegend("bottomright", colors = pal, labels = ss, title = title) %>%
-                addLegend("topright", colors = NULL, labels = NULL, title = atime) %>%
+                #addLegend("topright", colors = NULL, labels = NULL, title = atime) %>%
                 addLegend("topright", colors = NULL, labels = NULL, title = rtime)
             
             # add wind radii if available in advisory
