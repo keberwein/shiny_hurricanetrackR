@@ -142,14 +142,14 @@ server <- function(input, output, session) {
         
         output$windbox <- renderInfoBox({
             infoBox(
-                "Wind Speed", paste0(storm$MAXWIND[1], " mph."), icon = icon("superpowers"),
+                "Sustained Wind Speed", paste0(storm$MAXWIND[1], " mph."), icon = icon("superpowers"),
                 color = "yellow"
             )
         })
         
         output$gustbox <- renderInfoBox({
             infoBox(
-                "Wind Gust", paste0(storm$GUST[1], " mph."), icon = icon("life-ring"),
+                "Max Wind Gust", paste0(storm$GUST[1], " mph."), icon = icon("life-ring"),
                 color = "red"
             )
         })
