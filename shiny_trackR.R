@@ -190,18 +190,18 @@ server <- function(input, output, session) {
             incProgress(8/10, detail = "Building Doom Map") # Shiny Progress bar
             
             
-            m <- addCircles(m, lng = ~LON, lat = ~LAT, radius = ~MAXWIND * 250, color = ~color,
+            m <- addCircles(m, lng = ~LON, lat = ~LAT, radius = ~MAXWIND * 300, color = ~color,
                             opacity = 1, weight = 2, fill = TRUE, fillColor = ~color,
                             popup = ~sprintf("Time: %s %s<br/>
                                              Status: <strong>%s</strong><br/>
                                              Position: %3.2f, %3.2f<br/>
-                                             Wind: %s kts<br/>
-                                             Gust: %s kts",
+                                             Wind: %s mph.<br/>
+                                             Gust: %s mph.",
                                              htmlEscape(DATELBL), htmlEscape(TIMEZONE),
                                              htmlEscape(status),
                                              htmlEscape(LON), htmlEscape(LAT),
-                                             htmlEscape(MAXWIND),
-                                             htmlEscape(GUST))) %>%
+                                             htmlEscape(round(MAXWIND*1.15077945), 0),
+                                             htmlEscape(round(GUST*1.15077945), 0))) %>%
                 setView(-75, 21, 5)
             
         })
