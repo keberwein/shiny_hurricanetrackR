@@ -1,7 +1,6 @@
-library(shiny); library(shinydashboard); library(leaflet); library(stringr); library(XML)
+library(shiny); library(shinydashboard); library(leaflet); library(stringr); library(XML); library(dplyr)
 library(rvest); library(foreign); library(geojsonio); library(lubridate); library(htmltools)
 
-#library(htmlwidgets); library(RColorBrewer); library(XML); library(plyr); library(htmltools);
 
 ui <- dashboardPage(skin="red",
     dashboardHeader(title = "Hurricane TrackR"),

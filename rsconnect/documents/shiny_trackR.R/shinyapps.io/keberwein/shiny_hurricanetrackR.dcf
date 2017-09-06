@@ -3,9 +3,9 @@ title: shiny_hurricanetrackR
 account: keberwein
 server: shinyapps.io
 appId: 211063
-bundleId: 969696
+bundleId: 969709
 url: https://keberwein.shinyapps.io/shiny_hurricanetrackR/
-when: 1504703733.02904
+when: 1504704351.43236
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: .RData|README.md|www/.DS_Store
