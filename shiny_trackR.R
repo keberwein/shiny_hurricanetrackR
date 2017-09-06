@@ -33,7 +33,7 @@ server <- function(input, output, session) {
         
         message("Getting file links")
         gis_doc <- read_xml("http://www.nhc.noaa.gov/gis-at.xml") %>% xmlParse()
-        links <<- xmlToDataFrame(gis_doc, nodes=getNodeSet(gis_doc, "//item"))
+        links <- xmlToDataFrame(gis_doc, nodes=getNodeSet(gis_doc, "//item"))
         if (nrow(links) == 0) {
             message("Storm data not found")
             quit(save = "no", status = 1)
@@ -45,8 +45,8 @@ server <- function(input, output, session) {
         adv <- adv[grep(stormname, adv$title),]
         
         # get advisory number
-        advnum <<- regmatches(adv$title, regexpr('#[0-9]+[A-Z]?', adv$title))
-        advnum <<- sub("#0?", "", advnum)
+        advnum <- regmatches(adv$title, regexpr('#[0-9]+[A-Z]?', adv$title))
+        advnum <- sub("#0?", "", advnum)
         message(paste("Current advisory", advnum, sep = " "))
         
         # get url for storm files
@@ -89,7 +89,7 @@ server <- function(input, output, session) {
             d <- dir(td, "*_forecastradii.dbf$")
             s <- dir(td, "*_forecastradii.shp$")
             
-            wind <- read.dbf(d)
+            wind <<- read.dbf(d)
             radii <<- file_to_geojson(s, method='local', output=':memory:')
             
         } else {
@@ -124,6 +124,7 @@ server <- function(input, output, session) {
         storm <- storm %>% arrange(TAU) %>% 
             mutate(status = paste(TCDVLP, SSNUM, sep='-'),
                    color = as.character(factor(status, levels = ss, labels = pal)),
+                   # The data are in Atlantic Standard Time, which has the same offset as EST. AST is not in base R.
                    advisory = ymd_hms(paste0(date_dt, " ", time_ast), tz="US/Eastern"))
         
         # Output boxes for Shiny.
@@ -159,7 +160,7 @@ server <- function(input, output, session) {
         
         # Elements for leaflet map.
         title <- paste("Storm", stormname, sep = " ")
-        atime <- paste("Adv", storm$ADVISNUM[1], as.character(storm$advisory[1]), "EST", sep = " ")
+        atime <- paste("Adv", storm$ADVISNUM[1], as.character(storm$advisory[1]), "AST", sep = " ")
         if (!exists("radii")) { atime = paste(atime, "(no winds)", sep = " ")}
         rtime = paste("NEXRAD", format(Sys.time(), "%r"), sep = " ")
         
