@@ -115,7 +115,7 @@ server <- function(input, output, session) {
         # Parse dates and times.
         date_dt <- str_sub(storm$ADVDATE, -11) %>% as.Date("%b %d %Y") %>% as.character()
         time_ast <- str_sub(storm$ADVDATE, 1, -20)
-        ifelse(length(time_ast) == 8, time_ast <- paste0("0", time_ast), time_ast)
+        ifelse(as.numeric(str_sub(time_ast, 1,4)) < 900, time_ast <- paste0("0", time_ast), time_ast)
         time_ast <- str_sub(strptime(time_ast, "%I%M %p" ), -8)
         
         # Arrange and add a few new columns.
@@ -174,8 +174,8 @@ server <- function(input, output, session) {
                 addGeoJSON(shp, stroke = TRUE, color = 'grey', fill = FALSE) %>%
                 addGeoJSON(lin, weight = 2, fill = FALSE) %>%
                 addLegend("bottomright", colors = pal, labels = ss, title = title) %>%
-                addLegend("topright", colors = NULL, labels = NULL, title = atime) %>%
-                addLegend("topright", colors = NULL, labels = NULL, title = rtime)
+                addLegend("topright", colors = list(), labels = list(), title = atime) %>%
+                addLegend("topright", colors = list(), labels = list(), title = rtime)
             
             # add wind radii if available in advisory
             if (exists("radii")) {
@@ -185,9 +185,6 @@ server <- function(input, output, session) {
             if (exists("ww")) {
                 m <- addGeoJSON(m, ww, color = 'red', fill = FALSE)
             }
-            
-            incProgress(8/10, detail = "Building Doom Map") # Shiny Progress bar
-            
             
             m <- addCircles(m, lng = ~LON, lat = ~LAT, radius = ~MAXWIND * 300, color = ~color,
                             opacity = 1, weight = 2, fill = TRUE, fillColor = ~color,
