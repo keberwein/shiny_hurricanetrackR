@@ -24,6 +24,9 @@ server <- function(input, output, session) {
     stormname <- "Irma"
     
     # get GIS shapefile data and create Rdata bundle
+    stormname <- "Irma"
+    
+    # get GIS shapefile data and create Rdata bundle
     getStorm <- function(stormname) {
         wd <- getwd()
         td <- tempdir()
@@ -98,37 +101,36 @@ server <- function(input, output, session) {
         setwd(wd)
     }
     
+    # Setup a progress bar for Shiny.
     withProgress(message = 'Getting Data from NAAO and Doing a Bunch of Other Stuff', value = 0, {
         
         incProgress(1/10)
         
-        # storm scale
+        # Get storm scale and set colors.
         ss <-  c("Tropical Depression", "Tropical Storm-0", "Hurricane-1", "Hurricane-2", "Major Hurricane-3", "Major Hurricane-4", "Major Hurricane-5")
         pal <- colorRampPalette(c("blue", "green", "yellow", "orange", "red", "darkred", "black"))(length(ss))
         
-        incProgress(4/10)
+        incProgress(4/10) # Progress bar incrament.
         
+        # Run getStorm function defined above.
         getStorm(stormname)
         
-        storm <- storm[order(storm$TAU),]
-        storm$status <- paste(storm$TCDVLP, storm$SSNUM, sep='-')
-        storm$color <- as.character(factor(storm$status, levels = ss, labels = pal))
-        # Parse dates and times
+        # Parse dates and times.
         date_dt <- str_sub(storm$ADVDATE, -11) %>% as.Date("%b %d %Y") %>% as.character()
         time_ast <- str_sub(storm$ADVDATE, 1, -20)
         ifelse(length(time_ast) == 8, time_ast <- paste0("0", time_ast), time_ast)
         time_ast <- str_sub(strptime(time_ast, "%I%M %p" ), -8)
-        storm$datetime <- ymd_hms(paste0(date_dt, " ", time_ast), tz="US/Eastern")
         
+        # Arrange and add a few new columns.
+        storm <- storm %>% arrange(TAU) %>% 
+            mutate(status = paste(TCDVLP, SSNUM, sep='-'),
+                   color = as.character(factor(status, levels = ss, labels = pal)),
+                   advisory = ymd_hms(paste0(date_dt, " ", time_ast), tz="US/Eastern"))
         
-        title = paste("Storm", stormname, sep = " ")
-        atime = paste("Adv", storm$ADVISNUM[1], as.character(format(storm$advisory[1], "%b %d %H:%M")), "GMT", sep = " ")
-        if (!exists("radii")) { atime = paste(atime, "(no winds)", sep = " ")}
-        rtime = paste("NEXRAD", format(Sys.time(), "%r"), sep = " ")
-        
+        # Output boxes for Shiny.
         output$timebox <- renderInfoBox({
             infoBox(
-                "Most Recent Advisory", paste0(storm$datetime[1]), icon = icon("refresh"),
+                "Most Recent Advisory", paste0(storm$advisory[1]), icon = icon("refresh"),
                 color = "blue"
             )
         })
@@ -142,19 +144,25 @@ server <- function(input, output, session) {
         
         output$windbox <- renderInfoBox({
             infoBox(
-                "Sustained Wind Speed", paste0(storm$MAXWIND[1], " mph."), icon = icon("superpowers"),
+                "Sustained Wind Speed", paste0(round(storm$MAXWIND[1]*1.15077945, 0) , " mph."), icon = icon("superpowers"),
                 color = "yellow"
             )
         })
         
         output$gustbox <- renderInfoBox({
             infoBox(
-                "Max Wind Gust", paste0(storm$GUST[1], " mph."), icon = icon("life-ring"),
+                "Max Wind Gust", paste0(round(storm$GUST[1]*1.15077945, 0), " mph."), icon = icon("life-ring"),
                 color = "red"
             )
         })
         
-        incProgress(6/10)
+        incProgress(6/10) # Progress bar.
+        
+        # Elements for leaflet map.
+        title <- paste("Storm", stormname, sep = " ")
+        atime <- paste("Adv", storm$ADVISNUM[1], as.character(storm$advisory[1]), "EST", sep = " ")
+        if (!exists("radii")) { atime = paste(atime, "(no winds)", sep = " ")}
+        rtime = paste("NEXRAD", format(Sys.time(), "%r"), sep = " ")
         
         output$stormmap <- renderLeaflet({
             m <-leaflet(data=storm) %>%
@@ -168,7 +176,7 @@ server <- function(input, output, session) {
                 addGeoJSON(shp, stroke = TRUE, color = 'grey', fill = FALSE) %>%
                 addGeoJSON(lin, weight = 2, fill = FALSE) %>%
                 addLegend("bottomright", colors = pal, labels = ss, title = title) %>%
-                #addLegend("topright", colors = NULL, labels = NULL, title = atime) %>%
+                addLegend("topright", colors = NULL, labels = NULL, title = atime) %>%
                 addLegend("topright", colors = NULL, labels = NULL, title = rtime)
             
             # add wind radii if available in advisory
@@ -180,7 +188,7 @@ server <- function(input, output, session) {
                 m <- addGeoJSON(m, ww, color = 'red', fill = FALSE)
             }
             
-            incProgress(8/10, detail = "Building Doom Map")
+            incProgress(8/10, detail = "Building Doom Map") # Shiny Progress bar
             
             
             m <- addCircles(m, lng = ~LON, lat = ~LAT, radius = ~MAXWIND * 250, color = ~color,
@@ -198,7 +206,7 @@ server <- function(input, output, session) {
                 setView(-75, 21, 5)
             
         })
-
+        
     })
 }
 
