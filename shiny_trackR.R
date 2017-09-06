@@ -20,8 +20,6 @@ ui <- dashboardPage(skin="red",
 
 server <- function(input, output, session) {
     
-    stormname <- "Irma"
-    
     # get GIS shapefile data and create Rdata bundle
     stormname <- "Irma"
     
